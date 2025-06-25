@@ -10,7 +10,7 @@ const AdminAddProduct = () => {
     subcategory: '',
     quantity: ''
   });
-  const [imagePreviews, setImagePreviews] = useState([]); // Array for multiple images
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -88,7 +88,7 @@ const AdminAddProduct = () => {
       formData.append('subcategory', product.subcategory);
       formData.append('quantity', product.quantity);
       imagePreviews.forEach((image) => {
-        formData.append('images', image.file); // Use 'images' field name for multiple files
+        formData.append('images', image.file);
       });
 
       const response = await fetch('http://localhost:8080/api/products/add', {
@@ -124,25 +124,25 @@ const AdminAddProduct = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        {/* Animated Header */}
+        {/* Header */}
         <div className="text-center mb-12 space-y-4">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-pink-600 mb-2 animate-fade-in-down">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Add New Product
           </h1>
-          <p className="text-lg text-rose-500/90 animate-fade-in-down delay-100">
-            Expand your beauty collection with premium products
+          <p className="text-lg text-gray-600">
+            Expand your product catalog with new items
           </p>
-          <div className="w-32 h-1.5 bg-gradient-to-r from-rose-300 via-pink-300 to-rose-300 mx-auto rounded-full animate-scale-x origin-left"></div>
+          <div className="w-32 h-1.5 bg-gradient-to-r from-indigo-400 to-indigo-600 mx-auto rounded-full"></div>
         </div>
 
-        {/* Glass Card Container */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-white/30 transform transition-all duration-500 hover:shadow-3xl">
+        {/* Card Container */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
           <form onSubmit={handleSubmit} className="p-8">
             {/* Status Messages */}
             {error && (
-              <div className="mb-8 p-4 bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 text-red-700 rounded-lg animate-shake">
+              <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
                     <svg className="h-6 w-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -157,10 +157,10 @@ const AdminAddProduct = () => {
             )}
             
             {success && (
-              <div className="mb-8 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-lg animate-fade-in">
+              <div className="mb-8 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="h-6 w-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -175,10 +175,10 @@ const AdminAddProduct = () => {
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {/* Title */}
               <div className="md:col-span-2 space-y-2">
-                <label htmlFor="title" className="block text-sm font-medium text-rose-700/90">
-                  Product Title <span className="text-rose-500">*</span>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                  Product Title <span className="text-red-500">*</span>
                 </label>
-                <div className="relative rounded-xl shadow-sm">
+                <div className="relative rounded-lg shadow-sm">
                   <input
                     type="text"
                     id="title"
@@ -186,7 +186,7 @@ const AdminAddProduct = () => {
                     value={product.title}
                     onChange={handleChange}
                     required
-                    className="block w-full px-5 py-3.5 rounded-xl border-0 bg-white/90 shadow-sm ring-1 ring-inset ring-rose-200/70 placeholder:text-rose-300/80 focus:ring-2 focus:ring-inset focus:ring-rose-500/90 transition-all duration-300 hover:ring-rose-300 focus:shadow-md"
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter product title"
                   />
                 </div>
@@ -194,7 +194,7 @@ const AdminAddProduct = () => {
 
               {/* Description */}
               <div className="md:col-span-2 space-y-2">
-                <label htmlFor="description" className="block text-sm font-medium text-rose-700/90">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                   Description
                 </label>
                 <textarea
@@ -203,19 +203,19 @@ const AdminAddProduct = () => {
                   value={product.description}
                   onChange={handleChange}
                   rows={4}
-                  className="block w-full px-5 py-3.5 rounded-xl border-0 bg-white/90 shadow-sm ring-1 ring-inset ring-rose-200/70 placeholder:text-rose-300/80 focus:ring-2 focus:ring-inset focus:ring-rose-500/90 transition-all duration-300 hover:ring-rose-300 focus:shadow-md"
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Describe your product in detail..."
                 />
               </div>
 
               {/* Price */}
               <div className="space-y-2">
-                <label htmlFor="price" className="block text-sm font-medium text-rose-700/90">
-                  Price (₹) <span className="text-rose-500">*</span>
+                <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                  Price ($) <span className="text-red-500">*</span>
                 </label>
-                <div className="relative rounded-xl shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span className="text-rose-400/90 text-lg">₹</span>
+                <div className="relative rounded-lg shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500">$</span>
                   </div>
                   <input
                     type="number"
@@ -226,7 +226,7 @@ const AdminAddProduct = () => {
                     required
                     min="0"
                     step="0.01"
-                    className="block w-full pl-12 pr-5 py-3.5 rounded-xl border-0 bg-white/90 shadow-sm ring-1 ring-inset ring-rose-200/70 placeholder:text-rose-300/80 focus:ring-2 focus:ring-inset focus:ring-rose-500/90 transition-all duration-300 hover:ring-rose-300 focus:shadow-md"
+                    className="block w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="0.00"
                   />
                 </div>
@@ -234,10 +234,10 @@ const AdminAddProduct = () => {
 
               {/* Quantity */}
               <div className="space-y-2">
-                <label htmlFor="quantity" className="block text-sm font-medium text-rose-700/90">
-                  Quantity <span className="text-rose-500">*</span>
+                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+                  Quantity <span className="text-red-500">*</span>
                 </label>
-                <div className="relative rounded-xl shadow-sm">
+                <div className="relative rounded-lg shadow-sm">
                   <input
                     type="number"
                     id="quantity"
@@ -246,7 +246,7 @@ const AdminAddProduct = () => {
                     onChange={handleChange}
                     required
                     min="0"
-                    className="block w-full px-5 py-3.5 rounded-xl border-0 bg-white/90 shadow-sm ring-1 ring-inset ring-rose-200/70 placeholder:text-rose-300/80 focus:ring-2 focus:ring-inset focus:ring-rose-500/90 transition-all duration-300 hover:ring-rose-300 focus:shadow-md"
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter quantity"
                   />
                 </div>
@@ -254,35 +254,35 @@ const AdminAddProduct = () => {
 
               {/* Category Dropdown */}
               <div className="space-y-2">
-                <label htmlFor="category" className="block text-sm font-medium text-rose-700/90">
-                  Category <span className="text-rose-500">*</span>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                  Category <span className="text-red-500">*</span>
                 </label>
-                <div className="relative rounded-xl shadow-sm">
+                <div className="relative rounded-lg shadow-sm">
                   <select
                     id="category"
                     name="category"
                     value={product.category}
                     onChange={handleChange}
                     required
-                    className="appearance-none block w-full px-5 py-3.5 pr-10 rounded-xl border-0 bg-white/90 shadow-sm ring-1 ring-inset ring-rose-200/70 placeholder:text-rose-300/80 focus:ring-2 focus:ring-inset focus:ring-rose-500/90 transition-all duration-300 hover:ring-rose-300 focus:shadow-md"
+                    className="appearance-none block w-full px-4 py-3 pr-10 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   >
                     <option value="">Select a category</option>
                     {categories.map(category => (
                       <option key={category} value={category}>{category}</option>
                     ))}
                   </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                    <FiChevronDown className="h-5 w-5 text-rose-400/90" />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <FiChevronDown className="h-5 w-5 text-gray-400" />
                   </div>
                 </div>
               </div>
 
               {/* Subcategory Input */}
               <div className="space-y-2">
-                <label htmlFor="subcategory" className="block text-sm font-medium text-rose-700/90">
-                  Subcategory <span className="text-rose-500">*</span>
+                <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700">
+                  Subcategory <span className="text-red-500">*</span>
                 </label>
-                <div className="relative rounded-xl shadow-sm">
+                <div className="relative rounded-lg shadow-sm">
                   <input
                     type="text"
                     id="subcategory"
@@ -290,48 +290,47 @@ const AdminAddProduct = () => {
                     value={product.subcategory}
                     onChange={handleChange}
                     required
-                    className="block w-full px-5 py-3.5 rounded-xl border-0 bg-white/90 shadow-sm ring-1 ring-inset ring-rose-200/70 placeholder:text-rose-300/80 focus:ring-2 focus:ring-inset focus:ring-rose-500/90 transition-all duration-300 hover:ring-rose-300 focus:shadow-md"
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="e.g., Shampoo, Foundation"
                   />
                 </div>
-                <p className="mt-2 text-xs text-rose-400/80">
+                <p className="mt-2 text-xs text-gray-500">
                   Enter the specific product type (e.g., Shampoo for Hair)
                 </p>
               </div>
 
               {/* Image Upload */}
               <div className="md:col-span-2 space-y-2">
-                <label className="block text-sm font-medium text-rose-700/90">
-                  Product Images (up to 3) <span className="text-rose-500">*</span>
+                <label className="block text-sm font-medium text-gray-700">
+                  Product Images (up to 3) <span className="text-red-500">*</span>
                 </label>
-                <div className="flex flex-wrap items-center gap-6">
+                <div className="flex flex-wrap items-center gap-4">
                   {imagePreviews.map((image, index) => (
-                    <div key={index} className="relative group transition-all duration-500 hover:scale-[1.02]">
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-rose-100/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div key={index} className="relative group">
                       <img
                         src={image.preview}
                         alt={`Preview ${index + 1}`}
-                        className="h-36 w-36 object-cover rounded-xl border-2 border-white shadow-lg ring-2 ring-rose-200/50"
+                        className="h-32 w-32 object-cover rounded-lg border border-gray-200 shadow-sm"
                       />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute -top-3 -right-3 bg-white p-2 rounded-full shadow-md text-rose-600 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-rose-50 hover:scale-110"
+                        className="absolute -top-2 -right-2 bg-white p-1.5 rounded-full shadow-sm text-gray-600 hover:bg-gray-50"
                       >
                         <FiX className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
                   {imagePreviews.length < 3 && (
-                    <label className="flex flex-col items-center justify-center w-36 h-36 rounded-xl border-2 border-dashed border-rose-300/70 hover:border-rose-400 cursor-pointer transition-all duration-500 hover:bg-white/50 group">
-                      <div className="flex flex-col items-center justify-center pt-6 pb-7">
-                        <div className="p-3 bg-rose-100/50 rounded-full mb-3 group-hover:bg-rose-200/50 transition-colors duration-300">
-                          <FiPlus className="w-6 h-6 text-rose-500 group-hover:text-rose-600 transition-colors duration-300" />
+                    <label className="flex flex-col items-center justify-center w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 cursor-pointer bg-gray-50">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <div className="p-2 bg-gray-100 rounded-full mb-2">
+                          <FiPlus className="w-5 h-5 text-gray-500" />
                         </div>
-                        <p className="mb-2 text-sm text-rose-500/90 group-hover:text-rose-600 transition-colors duration-300">
-                          <span className="font-semibold">Click to upload</span>
+                        <p className="mb-1 text-sm text-gray-600">
+                          <span className="font-medium">Click to upload</span>
                         </p>
-                        <p className="text-xs text-rose-400/80 group-hover:text-rose-500/90 transition-colors duration-300">
+                        <p className="text-xs text-gray-500">
                           PNG, JPG, JPEG (MAX. 5MB)
                         </p>
                       </div>
@@ -353,34 +352,31 @@ const AdminAddProduct = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`relative overflow-hidden px-10 py-4 rounded-xl font-medium text-white shadow-lg transition-all duration-500 group ${
+                className={`px-8 py-3 rounded-lg font-medium text-white shadow-sm transition-colors ${
                   isLoading
-                    ? 'bg-rose-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 hover:shadow-xl hover:-translate-y-1'
+                    ? 'bg-indigo-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700'
                 }`}
               >
-                <span className="relative z-10 flex items-center justify-center space-x-2">
-                  {isLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FiUpload className="transition-transform duration-300 group-hover:translate-y-0.5" />
-                      <span>Add Product</span>
-                    </>
-                  )}
-                </span>
-                <span className="absolute inset-0 bg-gradient-to-r from-pink-700 to-rose-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"></span>
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <FiUpload />
+                    <span>Add Product</span>
+                  </div>
+                )}
               </button>
             </div>
           </form>
