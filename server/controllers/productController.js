@@ -3,108 +3,182 @@ const mongoose = require('mongoose');
 const Product = require('../models/Product');
 
 // Add a new product (POST API)
+
 const addProduct = async (req, res) => {
   try {
-    const { title, description, price, category, subcategory, quantity } = req.body;
-    const files = req.files;
-
-    if (!title || !price || !category || !subcategory || quantity === undefined) {
-      return res.status(400).json({ success: false, message: 'Title, price, category, subcategory, and quantity are required' });
-    }
-
-    const parsedQuantity = parseInt(quantity);
-    if (isNaN(parsedQuantity) || parsedQuantity < 0) {
-      return res.status(400).json({ success: false, message: 'Quantity must be a non-negative number' });
-    }
-
-    // Check if the product already exists
-    const existingProduct = await Product.findOne({ title, description, category, subcategory });
-
-    if (existingProduct) {
-      // If product exists, update the quantity only
-      existingProduct.quantity += parsedQuantity;
-      await existingProduct.save();
-
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Product already exists. Quantity updated.', 
-        product: {
-          id: existingProduct._id,
-          title: existingProduct.title,
-          description: existingProduct.description,
-          price: existingProduct.price,
-          category: existingProduct.category,
-          subcategory: existingProduct.subcategory,
-          images: existingProduct.images.map(image => ({
-            contentType: image.contentType,
-            data: image.data.toString('base64')
-          })),
-          quantity: existingProduct.quantity,
-          createdAt: existingProduct.createdAt,
-          updatedAt: existingProduct.updatedAt
-        }
-      });
-    }
-
-    // If product does not exist, create new one
-    const newProduct = new Product({
+    const {
       title,
+      tagline,
       description,
       price,
       category,
       subcategory,
-      quantity: parsedQuantity
+      sizesAvailable,
+      totalQuantity
+    } = req.body;
+    const files = req.files;
+
+    // Validate required fields
+    if (!title || !price || !category || !sizesAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title, price, category, and sizesAvailable are required'
+      });
+    }
+
+    const parsedPrice = parseFloat(price);
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price must be a non-negative number'
+      });
+    }
+
+    // Parse sizesAvailable
+    let parsedSizes;
+    try {
+      parsedSizes = typeof sizesAvailable === 'string'
+        ? JSON.parse(sizesAvailable)
+        : sizesAvailable;
+
+      if (!Array.isArray(parsedSizes) || parsedSizes.length === 0) {
+        throw new Error();
+      }
+    } catch {
+      return res.status(400).json({
+        success: false,
+        message: 'sizesAvailable must be a valid non-empty JSON array'
+      });
+    }
+
+    // Validate each size entry
+    for (const entry of parsedSizes) {
+      if (
+        !entry.size ||
+        typeof entry.size !== 'string' ||
+        typeof entry.quantity !== 'number' ||
+        entry.quantity < 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'Each size must include a valid size (string) and quantity (non-negative number)'
+        });
+      }
+    }
+
+    // Calculate totalQuantity if not provided
+    const computedTotal = parsedSizes.reduce((sum, s) => sum + s.quantity, 0);
+    const finalTotalQuantity =
+      totalQuantity !== undefined
+        ? parseInt(totalQuantity)
+        : computedTotal;
+
+    if (isNaN(finalTotalQuantity) || finalTotalQuantity < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total quantity must be a non-negative number'
+      });
+    }
+
+    // Check for existing product (basic match)
+    const existingProduct = await Product.findOne({
+      title,
+      description,
+      category,
+      subcategory
     });
 
-    if (files && files.length > 0) {
-      if (files.length > 3) {
-        return res.status(400).json({ success: false, message: 'Maximum of 3 images allowed per product' });
-      }
-      newProduct.images = files.map(file => ({
-        data: file.buffer,
-        contentType: file.mimetype
-      }));
-    } else {
-      return res.status(400).json({ success: false, message: 'At least one image is required for new products' });
+    if (existingProduct) {
+      // If exists, just update total quantity and merge sizes
+      parsedSizes.forEach(newSize => {
+        const existing = existingProduct.sizesAvailable.find(
+          s => s.size === newSize.size
+        );
+        if (existing) {
+          existing.quantity += newSize.quantity;
+        } else {
+          existingProduct.sizesAvailable.push(newSize);
+        }
+      });
+
+      existingProduct.totalQuantity += computedTotal;
+
+      await existingProduct.save();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Product already exists. Quantity updated.',
+        product: existingProduct
+      });
     }
+
+    // Check image uploads
+    if (!files || files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one product image is required'
+      });
+    }
+
+    if (files.length > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Maximum of 5 images allowed per product'
+      });
+    }
+
+    const images = files.map(file => ({
+      data: file.buffer,
+      contentType: file.mimetype
+    }));
+
+    // Create new product
+    const newProduct = new Product({
+      title,
+      tagline,
+      description,
+      price: parsedPrice,
+      category,
+      subcategory,
+      sizesAvailable: parsedSizes,
+      totalQuantity: finalTotalQuantity,
+      images
+    });
 
     await newProduct.save();
 
-    res.status(201).json({ 
-      success: true, 
-      message: 'New product added successfully', 
-      product: {
-        id: newProduct._id,
-        title: newProduct.title,
-        description: newProduct.description,
-        price: newProduct.price,
-        category: newProduct.category,
-        subcategory: newProduct.subcategory,
-        images: newProduct.images.map(image => ({
-          contentType: image.contentType,
-          data: image.data.toString('base64')
-        })),
-        quantity: newProduct.quantity,
-        createdAt: newProduct.createdAt,
-        updatedAt: newProduct.updatedAt
-      }
+    res.status(201).json({
+      success: true,
+      message: 'New product added successfully',
+      product: newProduct
     });
-
   } catch (error) {
     if (error instanceof multer.MulterError) {
       if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-        return res.status(400).json({ success: false, message: 'Too many files uploaded. Maximum 3 images allowed.' });
+        return res.status(400).json({
+          success: false,
+          message: 'Too many files uploaded. Maximum 5 images allowed.'
+        });
       }
       if (error.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ success: false, message: 'File size exceeds the 5MB limit.' });
+        return res.status(400).json({
+          success: false,
+          message: 'File size exceeds the 5MB limit.'
+        });
       }
-      return res.status(400).json({ success: false, message: `Multer error: ${error.message}` });
+      return res.status(400).json({
+        success: false,
+        message: `Multer error: ${error.message}`
+      });
     }
 
-    res.status(500).json({ success: false, message: 'Error adding product', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error adding product',
+      error: error.message
+    });
   }
 };
-
 
 // Get all products (GET API - Simple Version)
 const getProducts = async (req, res) => {
@@ -228,25 +302,20 @@ const getAllProducts = async (req, res) => {
     const products = await Product.find();
 
     const productList = products.map(product => ({
-      id: product._id,
+      _id: product._id,
       title: product.title,
       description: product.description,
       price: product.price,
       category: product.category,
       subcategory: product.subcategory,
-      image: product.image && product.image.data
-        ? {
-            contentType: product.image.contentType,
-            data: product.image.data.toString('base64')
-          }
-        : null,
       images: product.images && Array.isArray(product.images)
         ? product.images.map(image => ({
             contentType: image.contentType,
             data: image.data.toString('base64')
           }))
         : [],
-      quantity: product.quantity,
+      sizesAvailable: product.sizesAvailable,
+      totalQuantity: product.totalQuantity,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt
     }));
@@ -260,7 +329,6 @@ const getAllProducts = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error retrieving products', error: error.message });
   }
 };
-
 // Get total number of products (GET API)
 const getProductCount = async (req, res) => {
   try {

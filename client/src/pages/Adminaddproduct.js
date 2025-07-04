@@ -4,18 +4,24 @@ import { FiUpload, FiPlus, FiX, FiChevronDown } from 'react-icons/fi';
 const AdminAddProduct = () => {
   const [product, setProduct] = useState({
     title: '',
+    tagline: '',
     description: '',
     price: '',
     category: '',
     subcategory: '',
-    quantity: ''
+    sizesAvailable: [{ size: '', quantity: '' }]
   });
   const [imagePreviews, setImagePreviews] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const categories = ['Skincare', 'Makeup', 'Haircare', 'Fragrance'];
+  const categories = [
+    'Shirts', 'T-Shirts', 'Jeans', 'Trousers', 
+    'Jackets', 'Ethnic Wear', 'Activewear', 'Accessories'
+  ];
+
+  const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,10 +31,38 @@ const AdminAddProduct = () => {
     }));
   };
 
+  const handleSizeChange = (index, field, value) => {
+    const updatedSizes = [...product.sizesAvailable];
+    updatedSizes[index][field] = field === 'quantity' ? parseInt(value) || 0 : value;
+    setProduct(prev => ({
+      ...prev,
+      sizesAvailable: updatedSizes
+    }));
+  };
+
+  const addSizeField = () => {
+    if (product.sizesAvailable.length >= 6) {
+      setError('Maximum of 6 sizes allowed');
+      return;
+    }
+    setProduct(prev => ({
+      ...prev,
+      sizesAvailable: [...prev.sizesAvailable, { size: '', quantity: '' }]
+    }));
+  };
+
+  const removeSizeField = (index) => {
+    const updatedSizes = product.sizesAvailable.filter((_, i) => i !== index);
+    setProduct(prev => ({
+      ...prev,
+      sizesAvailable: updatedSizes
+    }));
+  };
+
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    if (imagePreviews.length + files.length > 3) {
-      setError('Maximum of 3 images allowed');
+    if (imagePreviews.length + files.length > 5) {
+      setError('Maximum of 5 images allowed');
       return;
     }
 
@@ -54,14 +88,43 @@ const AdminAddProduct = () => {
     setSuccess(false);
 
     // Validation
-    if (!product.title || !product.price || !product.category || !product.subcategory || !product.quantity) {
-      setError('Title, price, category, subcategory, and quantity are required');
+    if (!product.title || product.title.length < 2 || product.title.length > 100) {
+      setError('Title is required and must be between 2-100 characters');
       setIsLoading(false);
       return;
     }
 
-    if (!categories.includes(product.category)) {
-      setError('Invalid category selected');
+    if (product.tagline && product.tagline.length > 150) {
+      setError('Tagline must be less than 150 characters');
+      setIsLoading(false);
+      return;
+    }
+
+    if (product.description && product.description.length > 2000) {
+      setError('Description must be less than 2000 characters');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!product.price || isNaN(product.price) || product.price < 0) {
+      setError('Price must be a non-negative number');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!product.category || !categories.includes(product.category)) {
+      setError('Please select a valid category');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate sizes
+    const hasEmptySize = product.sizesAvailable.some(
+      s => !s.size || !sizeOptions.includes(s.size) || isNaN(s.quantity) || s.quantity < 0
+    );
+
+    if (hasEmptySize || product.sizesAvailable.length === 0) {
+      setError('All sizes must have a valid size selection and non-negative quantity');
       setIsLoading(false);
       return;
     }
@@ -72,21 +135,20 @@ const AdminAddProduct = () => {
       return;
     }
 
-    const parsedQuantity = parseInt(product.quantity);
-    if (isNaN(parsedQuantity) || parsedQuantity < 0) {
-      setError('Quantity must be a non-negative number');
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const formData = new FormData();
-      formData.append('title', product.title);
-      formData.append('description', product.description);
+      formData.append('title', product.title.trim());
+      formData.append('tagline', product.tagline.trim());
+      formData.append('description', product.description.trim());
       formData.append('price', product.price);
       formData.append('category', product.category);
-      formData.append('subcategory', product.subcategory);
-      formData.append('quantity', product.quantity);
+      formData.append('subcategory', product.subcategory.trim());
+      formData.append('sizesAvailable', JSON.stringify(
+        product.sizesAvailable.map(s => ({
+          size: s.size,
+          quantity: parseInt(s.quantity)
+        }))
+      ));
       imagePreviews.forEach((image) => {
         formData.append('images', image.file);
       });
@@ -107,11 +169,12 @@ const AdminAddProduct = () => {
       // Reset form
       setProduct({
         title: '',
+        tagline: '',
         description: '',
         price: '',
         category: '',
         subcategory: '',
-        quantity: ''
+        sizesAvailable: [{ size: '', quantity: '' }]
       });
       imagePreviews.forEach(image => URL.revokeObjectURL(image.preview));
       setImagePreviews([]);
@@ -132,7 +195,7 @@ const AdminAddProduct = () => {
             Add New Product
           </h1>
           <p className="text-lg text-gray-600">
-            Expand your product catalog with new items
+            Expand your men's clothing collection
           </p>
           <div className="w-32 h-1.5 bg-gradient-to-r from-indigo-400 to-indigo-600 mx-auto rounded-full"></div>
         </div>
@@ -176,7 +239,7 @@ const AdminAddProduct = () => {
               {/* Title */}
               <div className="md:col-span-2 space-y-2">
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                  Product Title <span className="text-red-500">*</span>
+                  Product Title (2-100 chars) <span className="text-red-500">*</span>
                 </label>
                 <div className="relative rounded-lg shadow-sm">
                   <input
@@ -186,8 +249,29 @@ const AdminAddProduct = () => {
                     value={product.title}
                     onChange={handleChange}
                     required
+                    minLength={2}
+                    maxLength={100}
                     className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter product title"
+                    placeholder="Enter product title (e.g., Classic Fit Denim Shirt)"
+                  />
+                </div>
+              </div>
+
+              {/* Tagline */}
+              <div className="md:col-span-2 space-y-2">
+                <label htmlFor="tagline" className="block text-sm font-medium text-gray-700">
+                  Tagline (max 150 chars)
+                </label>
+                <div className="relative rounded-lg shadow-sm">
+                  <input
+                    type="text"
+                    id="tagline"
+                    name="tagline"
+                    value={product.tagline}
+                    onChange={handleChange}
+                    maxLength={150}
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Short catchy phrase (e.g., Premium Comfort Fit)"
                   />
                 </div>
               </div>
@@ -195,7 +279,7 @@ const AdminAddProduct = () => {
               {/* Description */}
               <div className="md:col-span-2 space-y-2">
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Description
+                  Description (max 2000 chars)
                 </label>
                 <textarea
                   id="description"
@@ -203,8 +287,9 @@ const AdminAddProduct = () => {
                   value={product.description}
                   onChange={handleChange}
                   rows={4}
+                  maxLength={2000}
                   className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Describe your product in detail..."
+                  placeholder="Detailed product description including material, fit, care instructions..."
                 />
               </div>
 
@@ -228,26 +313,6 @@ const AdminAddProduct = () => {
                     step="0.01"
                     className="block w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="0.00"
-                  />
-                </div>
-              </div>
-
-              {/* Quantity */}
-              <div className="space-y-2">
-                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                  Quantity <span className="text-red-500">*</span>
-                </label>
-                <div className="relative rounded-lg shadow-sm">
-                  <input
-                    type="number"
-                    id="quantity"
-                    name="quantity"
-                    value={product.quantity}
-                    onChange={handleChange}
-                    required
-                    min="0"
-                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter quantity"
                   />
                 </div>
               </div>
@@ -280,7 +345,7 @@ const AdminAddProduct = () => {
               {/* Subcategory Input */}
               <div className="space-y-2">
                 <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700">
-                  Subcategory <span className="text-red-500">*</span>
+                  Subcategory
                 </label>
                 <div className="relative rounded-lg shadow-sm">
                   <input
@@ -289,21 +354,84 @@ const AdminAddProduct = () => {
                     name="subcategory"
                     value={product.subcategory}
                     onChange={handleChange}
-                    required
                     className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="e.g., Shampoo, Foundation"
+                    placeholder="e.g., Slim Fit, Cargo, Bomber"
                   />
                 </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  Enter the specific product type (e.g., Shampoo for Hair)
-                </p>
+              </div>
+
+              {/* Sizes Available */}
+              <div className="md:col-span-2 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Sizes & Stock <span className="text-red-500">*</span>
+                </label>
+                <div className="space-y-4">
+                  {product.sizesAvailable.map((size, index) => (
+                    <div key={index} className="flex items-center space-x-4">
+                      <div className="flex-1">
+                        <label htmlFor={`size-${index}`} className="block text-xs font-medium text-gray-500 mb-1">
+                          Size
+                        </label>
+                        <select
+                          id={`size-${index}`}
+                          value={size.size}
+                          onChange={(e) => handleSizeChange(index, 'size', e.target.value)}
+                          required={index === 0}
+                          className="block w-full px-3 py-2 rounded-md border border-gray-300 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value="">Select size</option>
+                          {sizeOptions.map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label htmlFor={`quantity-${index}`} className="block text-xs font-medium text-gray-500 mb-1">
+                          Quantity
+                        </label>
+                        <input
+                          type="number"
+                          id={`quantity-${index}`}
+                          value={size.quantity}
+                          onChange={(e) => handleSizeChange(index, 'quantity', e.target.value)}
+                          required={index === 0}
+                          min="0"
+                          className="block w-full px-3 py-2 rounded-md border border-gray-300 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Available stock"
+                        />
+                      </div>
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSizeField(index)}
+                          className="mt-5 p-2 text-red-500 hover:text-red-700"
+                        >
+                          <FiX className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {product.sizesAvailable.length < 6 && (
+                    <button
+                      type="button"
+                      onClick={addSizeField}
+                      className="mt-2 flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+                    >
+                      <FiPlus className="mr-1" />
+                      Add Another Size Option
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Image Upload */}
               <div className="md:col-span-2 space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Product Images (up to 3) <span className="text-red-500">*</span>
+                  Product Images (up to 5) <span className="text-red-500">*</span>
                 </label>
+                <p className="text-xs text-gray-500 mb-3">
+                  Upload high-quality images showing different angles (JPEG, PNG, WEBP, GIF)
+                </p>
                 <div className="flex flex-wrap items-center gap-4">
                   {imagePreviews.map((image, index) => (
                     <div key={index} className="relative group">
@@ -321,7 +449,7 @@ const AdminAddProduct = () => {
                       </button>
                     </div>
                   ))}
-                  {imagePreviews.length < 3 && (
+                  {imagePreviews.length < 5 && (
                     <label className="flex flex-col items-center justify-center w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 cursor-pointer bg-gray-50">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         <div className="p-2 bg-gray-100 rounded-full mb-2">
@@ -331,12 +459,12 @@ const AdminAddProduct = () => {
                           <span className="font-medium">Click to upload</span>
                         </p>
                         <p className="text-xs text-gray-500">
-                          PNG, JPG, JPEG (MAX. 5MB)
+                          Max 5MB per image
                         </p>
                       </div>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
                         onChange={handleImageUpload}
                         multiple
                         className="hidden"
